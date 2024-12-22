@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import dbConnect from '../../utils/dbConnect';
+// import dbConnect from '../../utils/dbConnect';
 import Attendance from '../../models/Attendance';
 
 interface AttendanceRequest extends NextApiRequest {
