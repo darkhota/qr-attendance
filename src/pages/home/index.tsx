@@ -1,4 +1,4 @@
-import QRCode from "react-qrcode";
+import { QRCode } from "react-qrcode"; // Updated import
 import { useSession, signIn } from "next-auth/react";
 
 const HomePage = () => {

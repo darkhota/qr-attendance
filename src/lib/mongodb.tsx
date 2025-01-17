@@ -6,24 +6,38 @@ if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI environment variable inside .env.local");
 }
 
-/** Reuse the connection during development to prevent multiple connections */
-let cached = (global as any).mongoose;
-console.log(cached)
+/** Extend the NodeJS Global interface to include mongoose */
+declare global {
+  namespace NodeJS {
+    interface Global {
+      mongoose: {
+        conn: typeof mongoose | null;
+        promise: Promise<typeof mongoose> | null;
+      };
+    }
+  }
+}
 
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+// Reuse the connection during development to prevent multiple connections
+const globalWithMongoose = global as NodeJS.Global;
+
+if (!globalWithMongoose.mongoose) {
+  globalWithMongoose.mongoose = { conn: null, promise: null };
 }
 
 async function dbConnect() {
-  if (cached.conn) {
+  if (globalWithMongoose.mongoose.conn) {
     console.log("Using cached connection");
-    return cached.conn;
+    return globalWithMongoose.mongoose.conn;
   }
 
-  if (!cached.promise) {
+  if (!globalWithMongoose.mongoose.promise) {
     console.log("Initializing new connection...");
-    cached.promise = mongoose
-      .connect(MONGODB_URI)
+    globalWithMongoose.mongoose.promise = mongoose
+      .connect(MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      })
       .then((mongoose) => {
         console.log("Connected to MongoDB");
         return mongoose;
@@ -35,11 +49,12 @@ async function dbConnect() {
   }
 
   try {
-    cached.conn = await cached.promise;
-    return cached.conn;
+    globalWithMongoose.mongoose.conn = await globalWithMongoose.mongoose.promise;
+    return globalWithMongoose.mongoose.conn;
   } catch (error) {
     console.error("Connection failed:", error);
     throw error;
   }
 }
+
 export default dbConnect;

@@ -13,7 +13,6 @@ export default async function handler(req: AttendanceRequest, res: NextApiRespon
   await dbConnect();
 
   if (req.method === 'POST') {
-    // Handle marking attendance
     const { userId, status } = req.body;
 
     try {
@@ -27,18 +26,19 @@ export default async function handler(req: AttendanceRequest, res: NextApiRespon
       await newAttendance.save();
       return res.status(201).json({ message: 'Attendance recorded successfully.' });
     } catch (error) {
+      console.error("Error recording attendance:", error); // Log the error
       return res.status(500).json({ error: 'Failed to record attendance' });
     }
   }
 
   if (req.method === 'GET') {
-    // Handle fetching attendance for a specific user
     const { userId } = req.query;
 
     try {
       const attendance = await Attendance.find({ userId }).sort({ date: -1 });
       return res.status(200).json(attendance);
     } catch (error) {
+      console.error("Error fetching attendance records:", error); // Log the error
       return res.status(500).json({ error: 'Failed to fetch attendance records.' });
     }
   }
